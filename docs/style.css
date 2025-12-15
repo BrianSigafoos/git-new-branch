@@ -1,0 +1,164 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "JetBrains Mono", monospace;
+  background: #0d0d0d;
+  color: #c0c0c0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  gap: 2rem;
+}
+
+.terminal {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 540px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.terminal-header {
+  background: #252525;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid #333;
+  border-radius: 8px 8px 0 0;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.dot.red {
+  background: #ff5f56;
+}
+.dot.yellow {
+  background: #ffbd2e;
+}
+.dot.green {
+  background: #27ca40;
+}
+
+.title {
+  flex: 1;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.terminal-body {
+  padding: 1.25rem;
+  font-size: 0.85rem;
+  line-height: 1.7;
+}
+
+.line {
+  white-space: pre;
+}
+
+.prompt {
+  color: #27ca40;
+}
+
+.output {
+  color: #888;
+}
+
+.success {
+  color: #27ca40;
+}
+
+.cyan {
+  color: #00d4aa;
+}
+
+.dim {
+  color: #555;
+}
+
+.install {
+  text-align: center;
+}
+
+.install-cmd {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.install-cmd code {
+  color: #00d4aa;
+  font-size: 0.85rem;
+}
+
+.copy {
+  background: #00d4aa;
+  color: #0d0d0d;
+  border: none;
+  border-radius: 4px;
+  padding: 0.4rem 0.7rem;
+  font-family: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.copy:hover {
+  background: #00ffc8;
+}
+
+.alt {
+  font-size: 0.75rem;
+  color: #555;
+}
+
+.alt code {
+  color: #888;
+}
+
+footer {
+  font-size: 0.8rem;
+}
+
+footer a {
+  color: #00d4aa;
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .terminal-body {
+    font-size: 0.7rem;
+    padding: 1rem;
+  }
+
+  .install-cmd {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .install-cmd code {
+    font-size: 0.7rem;
+  }
+}

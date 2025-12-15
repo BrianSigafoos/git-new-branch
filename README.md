@@ -11,7 +11,7 @@ One command to create consistently named and sequential branches: `gnb` → `use
 Install the latest release with a single command:
 
 ```bash
-curl -LsSf https://raw.githubusercontent.com/BrianSigafoos/git-new-branch/main/install.sh | bash
+curl -LsSf https://gnb.bfoos.net/install.sh | bash
 ```
 
 This downloads the prebuilt binary for your platform (macOS Apple Silicon/Intel or Linux).

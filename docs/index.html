@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>gnb - git new branch</title>
+    <meta
+      name="description"
+      content="Create git branches with username prefix. gnb → username/YYMMDD"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="terminal">
+      <div class="terminal-header">
+        <span class="dot red"></span>
+        <span class="dot yellow"></span>
+        <span class="dot green"></span>
+        <span class="title">gnb</span>
+      </div>
+      <div class="terminal-body">
+        <div class="line"><span class="prompt">$</span> gnb</div>
+        <div class="line output">
+          <span class="success">✅</span> Created and switched to branch:
+          <span class="cyan">user/251215</span>
+        </div>
+        <div class="line"></div>
+        <div class="line"><span class="prompt">$</span> gnb ABC-123</div>
+        <div class="line output">
+          <span class="success">✅</span> Created and switched to branch:
+          <span class="cyan">user/ABC-123</span>
+        </div>
+        <div class="line"></div>
+        <div class="line"><span class="prompt">$</span> gnb fix login bug</div>
+        <div class="line output">
+          <span class="success">✅</span> Created and switched to branch:
+          <span class="cyan">user/fix-login-bug</span>
+        </div>
+        <div class="line"></div>
+        <div class="line dim"># existing branch? auto-suffix _2, _3...</div>
+        <div class="line"><span class="prompt">$</span> gnb ABC-123</div>
+        <div class="line output">
+          <span class="success">✅</span> Created and switched to branch:
+          <span class="cyan">user/ABC-123_2</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="install">
+      <div class="install-cmd">
+        <code id="cmd">curl -LsSf https://gnb.bfoos.net/install.sh | bash</code>
+        <button class="copy" onclick="copy()">Copy</button>
+      </div>
+      <p class="alt">
+        or:
+        <code
+          >cargo install --git
+          https://github.com/BrianSigafoos/git-new-branch</code
+        >
+      </p>
+    </div>
+
+    <footer>
+      <a href="https://github.com/BrianSigafoos/git-new-branch">GitHub</a>
+    </footer>
+
+    <script>
+      function copy() {
+        navigator.clipboard.writeText(
+          document.getElementById("cmd").textContent,
+        );
+        document.querySelector(".copy").textContent = "Copied!";
+        setTimeout(
+          () => (document.querySelector(".copy").textContent = "Copy"),
+          1500,
+        );
+      }
+    </script>
+  </body>
+</html>
