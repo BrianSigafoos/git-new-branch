@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>gnb - git new branch</title>
+    <title>gnb – Stop Naming Branches</title>
     <meta
       name="description"
-      content="Create git branches with username prefix. gnb → username/YYMMDD"
+      content="One command creates consistent git branches. gnb → username/YYMMDD. Never think about branch names again."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -17,38 +17,42 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
+    <header class="hero">
+      <div class="badge">git-new-branch <span class="cmd">$ gnb</span></div>
+      <h1>Stop Naming Branches</h1>
+      <p class="subtagline">
+        Your brain shouldn't waste cycles on branch names.<br />
+        Type <code>gnb</code> and get <code>username/YYMMDD</code>—done.
+      </p>
+    </header>
+
     <div class="terminal">
       <div class="terminal-header">
         <span class="dot red"></span>
         <span class="dot yellow"></span>
         <span class="dot green"></span>
-        <span class="title">gnb</span>
+        <span class="title">terminal</span>
       </div>
       <div class="terminal-body">
         <div class="line"><span class="prompt">$</span> gnb</div>
         <div class="line output">
-          <span class="success">✅</span> Created and switched to branch:
-          <span class="cyan">user/251215</span>
+          <span class="success">✓</span> Created and switched to branch:
+          <span class="accent">user/251229</span>
         </div>
         <div class="line"></div>
         <div class="line"><span class="prompt">$</span> gnb ABC-123</div>
         <div class="line output">
-          <span class="success">✅</span> Created and switched to branch:
-          <span class="cyan">user/ABC-123</span>
+          <span class="success">✓</span> Created and switched to branch:
+          <span class="accent">user/ABC-123</span>
         </div>
         <div class="line"></div>
         <div class="line"><span class="prompt">$</span> gnb fix login bug</div>
         <div class="line output">
-          <span class="success">✅</span> Created and switched to branch:
-          <span class="cyan">user/fix-login-bug</span>
+          <span class="success">✓</span> Created and switched to branch:
+          <span class="accent">user/fix-login-bug</span>
         </div>
         <div class="line"></div>
         <div class="line dim"># existing branch? auto-suffix _2, _3...</div>
-        <div class="line"><span class="prompt">$</span> gnb ABC-123</div>
-        <div class="line output">
-          <span class="success">✅</span> Created and switched to branch:
-          <span class="cyan">user/ABC-123_2</span>
-        </div>
       </div>
     </div>
 
@@ -58,7 +62,7 @@
         <button class="copy" onclick="copy()">Copy</button>
       </div>
       <p class="alt">
-        or:
+        Or with Rust:
         <code
           >cargo install --git
           https://github.com/BrianSigafoos/git-new-branch</code
@@ -67,7 +71,12 @@
     </div>
 
     <footer>
+      Built by
+      <a href="https://briansigafoos.com">Brian Sigafoos</a>
+      ·
       <a href="https://github.com/BrianSigafoos/git-new-branch">GitHub</a>
+      ·
+      <a href="https://tools.bfoos.net">More tools</a>
     </footer>
 
     <script>
@@ -75,11 +84,9 @@
         navigator.clipboard.writeText(
           document.getElementById("cmd").textContent,
         );
-        document.querySelector(".copy").textContent = "Copied!";
-        setTimeout(
-          () => (document.querySelector(".copy").textContent = "Copy"),
-          1500,
-        );
+        const button = document.querySelector(".copy");
+        button.textContent = "Copied!";
+        setTimeout(() => (button.textContent = "Copy"), 1500);
       }
     </script>
   </body>

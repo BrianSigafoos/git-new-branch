@@ -1,14 +1,13 @@
 # git-new-branch (gnb)
 
-**Create git branches with username prefix.**
+## Stop Naming Branches
 
-One command to create consistently named and sequential branches: `gnb` → `username/YYMMDD`
+Your brain shouldn't waste cycles on branch names.
+Type `gnb` and get `username/YYMMDD`—done.
 
 ## Installation
 
 ### Quick Install (Recommended)
-
-Install the latest release with a single command:
 
 ```bash
 curl -LsSf https://gnb.bfoos.net/install.sh | bash
