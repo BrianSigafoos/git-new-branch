@@ -7,6 +7,7 @@ use anyhow::{Context, Result};
 use chrono::Local;
 use clap::Parser;
 use colored::Colorize;
+use std::collections::HashSet;
 use std::process::{Command, ExitCode};
 
 /// Create a new git branch prefixed with your username.
@@ -67,7 +68,8 @@ fn run() -> Result<()> {
     let candidate = format!("{}/{}", prefix, sanitized);
 
     // Find an available branch name (handles collisions)
-    let target = pick_available_name(&candidate)?;
+    let existing = collect_existing_branches(&candidate)?;
+    let target = pick_available_name(&candidate, &existing)?;
 
     // Create and switch to the branch
     create_branch(&target)?;
@@ -97,133 +99,217 @@ fn ensure_git_repo() -> Result<()> {
 
 /// Get the branch prefix (username or GNB_PREFIX override).
 fn get_prefix() -> Result<String> {
+    let mut from_env = false;
+
     // Check for GNB_PREFIX environment variable first
-    if let Ok(prefix) = std::env::var("GNB_PREFIX") {
-        if !prefix.is_empty() {
-            return Ok(prefix);
+    let raw_prefix = match std::env::var("GNB_PREFIX") {
+        Ok(prefix) if !prefix.trim().is_empty() => {
+            from_env = true;
+            prefix
         }
+        _ => {
+            // Fall back to system username
+            let output = Command::new("id")
+                .arg("-un")
+                .output()
+                .context("Failed to get username")?;
+
+            if !output.status.success() {
+                anyhow::bail!("Failed to determine username");
+            }
+
+            String::from_utf8(output.stdout)
+                .context("Username was not valid UTF-8")?
+                .trim()
+                .to_string()
+        }
+    };
+
+    let sanitized = sanitize_component(raw_prefix.trim());
+    if sanitized.is_empty() {
+        if from_env {
+            anyhow::bail!("GNB_PREFIX is empty or invalid after sanitization");
+        }
+        anyhow::bail!("Username is empty or invalid after sanitization");
     }
 
-    // Fall back to system username
-    let output = Command::new("id")
-        .arg("-un")
-        .output()
-        .context("Failed to get username")?;
-
-    if !output.status.success() {
-        anyhow::bail!("Failed to determine username");
-    }
-
-    let username = String::from_utf8(output.stdout)
-        .context("Username was not valid UTF-8")?
-        .trim()
-        .to_string();
-
-    if username.is_empty() {
-        anyhow::bail!("Username is empty");
-    }
-
-    Ok(username)
+    Ok(sanitized)
 }
 
 /// Build the base branch name from CLI arguments.
 fn build_base_name(args: &[String]) -> String {
     if args.is_empty() {
         // Default to YYMMDD format
-        Local::now().format("%y%m%d").to_string()
+        today_stamp()
     } else {
-        // Join all arguments with dashes
+        // Join all arguments with spaces
         args.join(" ")
     }
 }
 
-/// Sanitize a branch name to be git-compatible.
-fn sanitize(name: &str) -> String {
+fn today_stamp() -> String {
+    Local::now().format("%y%m%d").to_string()
+}
+
+/// Sanitize a single branch name component to be git-compatible.
+fn sanitize_component(name: &str) -> String {
     let mut result = String::with_capacity(name.len());
-
-    // Replace slashes with dashes
-    let name = name.replace('/', "-");
-
-    // Replace whitespace sequences with single dash
     let mut prev_was_separator = false;
-    for c in name.chars() {
-        if c.is_whitespace() {
-            if !prev_was_separator {
-                result.push('-');
-                prev_was_separator = true;
-            }
-        } else if c.is_alphanumeric() || c == '.' || c == '_' || c == '+' || c == '-' {
-            result.push(c);
-            prev_was_separator = c == '-';
-        } else {
-            // Skip invalid characters
-            if !prev_was_separator {
-                result.push('-');
-                prev_was_separator = true;
-            }
+    let mut prev_was_dot = false;
+
+    for mut c in name.chars() {
+        if c == '/' {
+            c = '-';
         }
+
+        if c.is_whitespace() {
+            push_separator(&mut result, &mut prev_was_separator, &mut prev_was_dot);
+            continue;
+        }
+
+        if !is_allowed_branch_char(c) {
+            push_separator(&mut result, &mut prev_was_separator, &mut prev_was_dot);
+            continue;
+        }
+
+        if c == '.' {
+            if result.is_empty() || prev_was_separator {
+                push_separator(&mut result, &mut prev_was_separator, &mut prev_was_dot);
+                continue;
+            }
+
+            if prev_was_dot {
+                result.pop();
+                push_separator(&mut result, &mut prev_was_separator, &mut prev_was_dot);
+                continue;
+            }
+
+            result.push('.');
+            prev_was_separator = false;
+            prev_was_dot = true;
+            continue;
+        }
+
+        result.push(c);
+        prev_was_separator = c == '-';
+        prev_was_dot = false;
     }
 
-    // Trim leading/trailing dashes
-    let result = result.trim_matches('-').to_string();
+    let mut cleaned = result.trim_matches(|c| c == '-' || c == '.').to_string();
 
-    // If empty after sanitization, use date fallback
-    if result.is_empty() {
-        Local::now().format("%y%m%d").to_string()
+    if cleaned.ends_with(".lock") {
+        let dot_index = cleaned.len() - ".lock".len();
+        cleaned.replace_range(dot_index..dot_index + 1, "-");
+    }
+
+    cleaned
+}
+
+fn is_allowed_branch_char(c: char) -> bool {
+    c.is_alphanumeric() || matches!(c, '.' | '_' | '+' | '-')
+}
+
+fn push_separator(result: &mut String, prev_was_separator: &mut bool, prev_was_dot: &mut bool) {
+    if !*prev_was_separator {
+        result.push('-');
+        *prev_was_separator = true;
+    }
+    *prev_was_dot = false;
+}
+
+/// Sanitize a branch name to be git-compatible.
+fn sanitize(name: &str) -> String {
+    let sanitized = sanitize_component(name);
+    if sanitized.is_empty() {
+        today_stamp()
     } else {
-        result
+        sanitized
     }
 }
 
-/// Check if a branch exists locally or on remote origin.
-fn branch_exists(name: &str) -> Result<bool> {
-    // Check local branches
-    let local = Command::new("git")
-        .args([
-            "show-ref",
-            "--verify",
-            "--quiet",
-            &format!("refs/heads/{}", name),
-        ])
-        .status()
-        .context("Failed to check local branch")?;
+/// Collect local and origin branches matching the candidate prefix.
+fn collect_existing_branches(candidate: &str) -> Result<HashSet<String>> {
+    let mut existing = collect_local_branches()?;
 
-    if local.success() {
-        return Ok(true);
+    if has_origin_remote() {
+        let remote = collect_remote_branches(candidate)?;
+        existing.extend(remote);
     }
 
-    // Check if origin remote exists
-    let has_origin = Command::new("git")
-        .args(["remote", "get-url", "origin"])
+    Ok(existing)
+}
+
+fn collect_local_branches() -> Result<HashSet<String>> {
+    let output = Command::new("git")
+        .args(["for-each-ref", "--format=%(refname:short)", "refs/heads"])
         .output()
-        .map(|o| o.status.success())
-        .unwrap_or(false);
+        .context("Failed to list local branches")?;
 
-    if has_origin {
-        // Check remote branches
-        let remote = Command::new("git")
-            .args(["ls-remote", "--exit-code", "--heads", "origin", name])
-            .output()
-            .context("Failed to check remote branch")?;
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!("Failed to list local branches: {}", stderr.trim());
+    }
 
-        if remote.status.success() {
-            return Ok(true);
+    let stdout =
+        String::from_utf8(output.stdout).context("Local branch list was not valid UTF-8")?;
+    let mut branches = HashSet::new();
+    for line in stdout.lines() {
+        let name = line.trim();
+        if !name.is_empty() {
+            branches.insert(name.to_string());
         }
     }
 
-    Ok(false)
+    Ok(branches)
+}
+
+fn collect_remote_branches(candidate: &str) -> Result<HashSet<String>> {
+    let pattern = format!("refs/heads/{}*", candidate);
+    let output = Command::new("git")
+        .args(["ls-remote", "--heads", "origin", &pattern])
+        .output()
+        .context("Failed to list remote branches")?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!("Failed to list remote branches: {}", stderr.trim());
+    }
+
+    let stdout =
+        String::from_utf8(output.stdout).context("Remote branch list was not valid UTF-8")?;
+    let mut branches = HashSet::new();
+    for line in stdout.lines() {
+        let mut parts = line.split_whitespace();
+        let _ = parts.next();
+        let Some(ref_name) = parts.next() else {
+            continue;
+        };
+        if let Some(short) = ref_name.strip_prefix("refs/heads/") {
+            branches.insert(short.to_string());
+        }
+    }
+
+    Ok(branches)
+}
+
+fn has_origin_remote() -> bool {
+    Command::new("git")
+        .args(["remote", "get-url", "origin"])
+        .status()
+        .map(|status| status.success())
+        .unwrap_or(false)
 }
 
 /// Find an available branch name, adding _2, _3, etc. if needed.
-fn pick_available_name(candidate: &str) -> Result<String> {
-    if !branch_exists(candidate)? {
+fn pick_available_name(candidate: &str, existing: &HashSet<String>) -> Result<String> {
+    if !existing.contains(candidate) {
         return Ok(candidate.to_string());
     }
 
     // Try with numeric suffix
     for i in 2..=100 {
         let with_suffix = format!("{}_{}", candidate, i);
-        if !branch_exists(&with_suffix)? {
+        if !existing.contains(&with_suffix) {
             return Ok(with_suffix);
         }
     }
@@ -292,6 +378,18 @@ mod tests {
     }
 
     #[test]
+    fn test_sanitize_dot_edges() {
+        assert_eq!(sanitize(".leading"), "leading");
+        assert_eq!(sanitize("trailing."), "trailing");
+        assert_eq!(sanitize("double..dot"), "double-dot");
+    }
+
+    #[test]
+    fn test_sanitize_lock_suffix() {
+        assert_eq!(sanitize("build.lock"), "build-lock");
+    }
+
+    #[test]
     fn test_sanitize_empty_fallback() {
         let result = sanitize("!@#$%");
         // Should be a date in YYMMDD format
@@ -321,5 +419,23 @@ mod tests {
     fn test_build_base_name_multiple() {
         let args = vec!["fix".to_string(), "login".to_string()];
         assert_eq!(build_base_name(&args), "fix login");
+    }
+
+    #[test]
+    fn test_pick_available_name_no_collision() {
+        let existing = HashSet::new();
+        let result = pick_available_name("user/240101", &existing).unwrap();
+        assert_eq!(result, "user/240101");
+    }
+
+    #[test]
+    fn test_pick_available_name_collision() {
+        let mut existing = HashSet::new();
+        existing.insert("user/240101".to_string());
+        existing.insert("user/240101_2".to_string());
+        existing.insert("user/240101_3".to_string());
+
+        let result = pick_available_name("user/240101", &existing).unwrap();
+        assert_eq!(result, "user/240101_4");
     }
 }
