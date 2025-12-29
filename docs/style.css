@@ -6,39 +6,85 @@
 
 body {
   font-family: "JetBrains Mono", monospace;
-  background: #0d0d0d;
-  color: #c0c0c0;
+  background: radial-gradient(circle at top, #22223b, #0d0d14 65%);
+  color: #f2f2f2;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
-  gap: 2rem;
+  padding: 2.5rem 1.5rem 2rem;
+  gap: 1.5rem;
+}
+
+.hero {
+  text-align: center;
+}
+
+.badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 1.25rem;
+}
+
+.badge .cmd {
+  color: #00ffc8;
+  margin-left: 0.5rem;
+}
+
+.hero h1 {
+  font-size: 2.8rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background: linear-gradient(90deg, #fff 0%, #00ffc8 50%, #ff3366 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.75rem;
+  line-height: 1.2;
+}
+
+.subtagline {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.6;
+}
+
+.subtagline code {
+  color: #00ffc8;
+  background: rgba(0, 255, 200, 0.1);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
 }
 
 .terminal {
-  background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 8px;
+  background: rgba(10, 10, 20, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
   width: 100%;
-  max-width: 540px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  max-width: 560px;
+  box-shadow: 0 35px 70px rgba(5, 5, 10, 0.8);
+  backdrop-filter: blur(12px);
 }
 
 .terminal-header {
-  background: #252525;
-  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.9rem 1.2rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  border-bottom: 1px solid #333;
-  border-radius: 8px 8px 0 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px 12px 0 0;
 }
 
 .dot {
-  width: 12px;
-  height: 12px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
 }
 
@@ -56,13 +102,13 @@ body {
   flex: 1;
   text-align: center;
   font-size: 0.8rem;
-  color: #666;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .terminal-body {
-  padding: 1.25rem;
+  padding: 1.5rem;
   font-size: 0.85rem;
-  line-height: 1.7;
+  line-height: 1.8;
 }
 
 .line {
@@ -70,23 +116,24 @@ body {
 }
 
 .prompt {
-  color: #27ca40;
+  color: #00ffc8;
 }
 
 .output {
-  color: #888;
+  color: rgba(255, 255, 255, 0.75);
 }
 
 .success {
   color: #27ca40;
+  margin-right: 0.4rem;
 }
 
-.cyan {
-  color: #00d4aa;
+.accent {
+  color: #00ffc8;
 }
 
 .dim {
-  color: #555;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .install {
@@ -96,50 +143,54 @@ body {
 .install-cmd {
   display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
-  background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 6px;
-  padding: 0.75rem 1rem;
-  margin-bottom: 0.75rem;
+  gap: 0.9rem;
+  background: rgba(10, 10, 20, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.9rem;
 }
 
 .install-cmd code {
-  color: #00d4aa;
-  font-size: 0.85rem;
+  color: #00ffc8;
+  font-size: 0.83rem;
 }
 
 .copy {
-  background: #00d4aa;
-  color: #0d0d0d;
+  background: #00ffc8;
+  color: #111;
   border: none;
-  border-radius: 4px;
-  padding: 0.4rem 0.7rem;
+  border-radius: 5px;
+  padding: 0.45rem 0.9rem;
   font-family: inherit;
-  font-size: 0.75rem;
-  cursor: pointer;
+  font-size: 0.78rem;
   font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
 
 .copy:hover {
-  background: #00ffc8;
+  background: #33ffd6;
 }
 
 .alt {
-  font-size: 0.75rem;
-  color: #555;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .alt code {
-  color: #888;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 footer {
+  display: flex;
+  gap: 0.5rem;
   font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 footer a {
-  color: #00d4aa;
+  color: #00ffc8;
   text-decoration: none;
 }
 
@@ -148,17 +199,29 @@ footer a:hover {
 }
 
 @media (max-width: 600px) {
+  .hero h1 {
+    font-size: 1.8rem;
+  }
+
+  .badge {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.8rem;
+  }
+
+  .subtagline {
+    font-size: 0.85rem;
+  }
+
   .terminal-body {
-    font-size: 0.7rem;
-    padding: 1rem;
+    font-size: 0.75rem;
+    padding: 1.2rem;
   }
 
   .install-cmd {
     flex-direction: column;
-    gap: 0.5rem;
   }
 
   .install-cmd code {
-    font-size: 0.7rem;
+    font-size: 0.72rem;
   }
 }
